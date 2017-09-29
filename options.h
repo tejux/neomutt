@@ -275,4 +275,6 @@ WHERE bool VirtualSpoolfile;
 WHERE bool NmRecord;
 #endif
 
+WHERE bool ShowNotifications;
+
 #endif /* _MUTT_OPTIONS_H_ */
