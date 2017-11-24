@@ -979,11 +979,9 @@ int mutt_parse_push(struct Buffer *buf, struct Buffer *s, unsigned long data,
  */
 char *parse_keymap(int *menu, struct Buffer *s, int maxmenus, int *nummenus, struct Buffer *err)
 {
-  struct Buffer buf;
+  struct Buffer buf = {0};
   int i = 0;
   char *p = NULL, *q = NULL;
-
-  mutt_buffer_init(&buf);
 
   /* menu name */
   mutt_extract_token(&buf, s, 0);
@@ -1024,7 +1022,7 @@ char *parse_keymap(int *menu, struct Buffer *s, int maxmenus, int *nummenus, str
     mutt_str_strfcpy(err->data, _("too few arguments"), err->dsize);
   }
 error:
-  FREE(&buf.data);
+  mutt_buffer_reinit(&buf);
   return NULL;
 }
 

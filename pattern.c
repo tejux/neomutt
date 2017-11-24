@@ -75,12 +75,11 @@ enum EatRangeError
 
 static bool eat_regex(struct Pattern *pat, struct Buffer *s, struct Buffer *err)
 {
-  struct Buffer buf;
+  struct Buffer buf = {0};
   char errmsg[STRING];
   int r;
   char *pexpr = NULL;
 
-  mutt_buffer_init(&buf);
   pexpr = s->dptr;
   if (mutt_extract_token(&buf, s, MUTT_TOKEN_PATTERN | MUTT_TOKEN_COMMENT) != 0 || !buf.data)
   {
@@ -97,12 +96,12 @@ static bool eat_regex(struct Pattern *pat, struct Buffer *s, struct Buffer *err)
   {
     pat->p.str = mutt_str_strdup(buf.data);
     pat->ign_case = mutt_mb_is_lower(buf.data);
-    FREE(&buf.data);
+    mutt_buffer_reinit(&buf);
   }
   else if (pat->groupmatch)
   {
     pat->p.g = mutt_pattern_group(buf.data);
-    FREE(&buf.data);
+    mutt_buffer_reinit(&buf);
   }
   else
   {
@@ -113,11 +112,11 @@ static bool eat_regex(struct Pattern *pat, struct Buffer *s, struct Buffer *err)
     {
       regerror(r, pat->p.regex, errmsg, sizeof(errmsg));
       mutt_buffer_printf(err, "'%s': %s", buf.data, errmsg);
-      FREE(&buf.data);
+      mutt_buffer_reinit(&buf);
       FREE(&pat->p.regex);
       return false;
     }
-    FREE(&buf.data);
+    mutt_buffer_reinit(&buf);
   }
 
   return true;
@@ -396,11 +395,10 @@ static void adjust_date_range(struct tm *min, struct tm *max)
 
 static bool eat_date(struct Pattern *pat, struct Buffer *s, struct Buffer *err)
 {
-  struct Buffer buffer;
+  struct Buffer buffer = {0};
   struct tm min, max;
   char *pexpr = NULL;
 
-  mutt_buffer_init(&buffer);
   pexpr = s->dptr;
   if (mutt_extract_token(&buffer, s, MUTT_TOKEN_COMMENT | MUTT_TOKEN_PATTERN) != 0 ||
       !buffer.data)
@@ -481,7 +479,7 @@ static bool eat_date(struct Pattern *pat, struct Buffer *s, struct Buffer *err)
       pc = get_date(pc, &min, err);
       if (!pc)
       {
-        FREE(&buffer.data);
+        mutt_buffer_reinit(&buffer);
         return false;
       }
       have_min = true;
@@ -516,7 +514,7 @@ static bool eat_date(struct Pattern *pat, struct Buffer *s, struct Buffer *err)
 
       if (!parse_date_range(pc, &min, &max, have_min, &base_min, err))
       { /* bail out on any parsing error */
-        FREE(&buffer.data);
+        mutt_buffer_reinit(&buffer);
         return false;
       }
     }
@@ -528,7 +526,7 @@ static bool eat_date(struct Pattern *pat, struct Buffer *s, struct Buffer *err)
   pat->min = mutt_date_make_time(&min, 1);
   pat->max = mutt_date_make_time(&max, 1);
 
-  FREE(&buffer.data);
+  mutt_buffer_reinit(&buffer);
 
   return true;
 }
@@ -1113,9 +1111,8 @@ struct Pattern *mutt_pattern_comp(/* const */ char *s, int flags, struct Buffer 
   const struct PatternFlags *entry = NULL;
   char *p = NULL;
   char *buf = NULL;
-  struct Buffer ps;
+  struct Buffer ps = {0};
 
-  mutt_buffer_init(&ps);
   ps.dptr = s;
   ps.dsize = mutt_str_strlen(s);
 
@@ -1891,7 +1888,7 @@ int mutt_pattern_func(int op, char *prompt)
 {
   struct Pattern *pat = NULL;
   char buf[LONG_STRING] = "", *simple = NULL;
-  struct Buffer err;
+  struct Buffer err = {0};
   int rc = -1;
   struct Progress progress;
 
@@ -1905,7 +1902,6 @@ int mutt_pattern_func(int op, char *prompt)
   simple = mutt_str_strdup(buf);
   mutt_check_simple(buf, sizeof(buf), NONULL(SimpleSearch));
 
-  mutt_buffer_init(&err);
   err.dsize = STRING;
   err.data = mutt_mem_malloc(err.dsize);
   pat = mutt_pattern_comp(buf, MUTT_FULL_MSG, &err);
@@ -2002,7 +1998,7 @@ int mutt_pattern_func(int op, char *prompt)
 bail:
   FREE(&simple);
   mutt_pattern_free(&pat);
-  FREE(&err.data);
+  mutt_buffer_reinit(&err);
 
   return rc;
 }
@@ -2038,8 +2034,7 @@ int mutt_search_command(int cur, int op)
 
     if (!SearchPattern || (mutt_str_strcmp(temp, LastSearchExpn) != 0))
     {
-      struct Buffer err;
-      mutt_buffer_init(&err);
+      struct Buffer err = {0};
       OPT_SEARCH_INVALID = true;
       mutt_str_strfcpy(LastSearch, buf, sizeof(LastSearch));
       mutt_message(_("Compiling search pattern..."));
@@ -2050,7 +2045,7 @@ int mutt_search_command(int cur, int op)
       if (!SearchPattern)
       {
         mutt_error("%s", err.data);
-        FREE(&err.data);
+        mutt_buffer_reinit(&err);
         LastSearch[0] = '\0';
         return -1;
       }
