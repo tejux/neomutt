@@ -364,8 +364,7 @@ static void finalize_chunk(struct Buffer *res, struct Buffer *buf, char *charset
   charset[charsetlen] = end;
   mutt_mb_filter_unprintable(&buf->data);
   mutt_buffer_addstr(res, buf->data);
-  FREE(&buf->data);
-  mutt_buffer_init(buf);
+  mutt_buffer_reinit(buf);
 }
 
 /**
