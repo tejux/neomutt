@@ -49,7 +49,6 @@
 #include "history.h"
 #include "keymap.h"
 #include "mailbox.h"
-#include "mbtable.h"
 #include "mutt_curses.h"
 #include "mutt_menu.h"
 #include "mx.h"
@@ -2065,7 +2064,7 @@ static void esc_char(char c, char *p, char *dst, size_t len)
     *p++ = c;
 }
 
-static size_t escape_string(char *dst, size_t len, const char *src)
+static size_t escape_string2(char *dst, size_t len, const char *src)
 {
   char *p = dst;
 
@@ -2099,7 +2098,7 @@ static size_t escape_string(char *dst, size_t len, const char *src)
   return p - dst;
 }
 
-static void pretty_var(char *dst, size_t len, const char *option, const char *val)
+static void pretty_var2(char *dst, size_t len, const char *option, const char *val)
 {
   char *p = NULL;
 
@@ -2114,7 +2113,7 @@ static void pretty_var(char *dst, size_t len, const char *option, const char *va
     *p++ = '=';
   if (p - dst < len)
     *p++ = '"';
-  p += escape_string(p, len - (p - dst) + 1, val); /* \0 terminate it */
+  p += escape_string2(p, len - (p - dst) + 1, val); /* \0 terminate it */
   if (p - dst < len)
     *p++ = '"';
   *p = '\0';
@@ -2524,7 +2523,7 @@ static int parse_set(struct Buffer *tmp, struct Buffer *s, unsigned long data,
           val = myvar_get(myvar);
           if (val)
           {
-            pretty_var(err->data, err->dsize, myvar, val);
+            pretty_var2(err->data, err->dsize, myvar, val);
             break;
           }
           else
@@ -2556,7 +2555,7 @@ static int parse_set(struct Buffer *tmp, struct Buffer *s, unsigned long data,
           val = *((char **) MuttVars[idx].var);
 
         /* user requested the value of this variable */
-        pretty_var(err->data, err->dsize, MuttVars[idx].name, NONULL(val));
+        pretty_var2(err->data, err->dsize, MuttVars[idx].name, NONULL(val));
         break;
       }
       else
@@ -2645,7 +2644,7 @@ static int parse_set(struct Buffer *tmp, struct Buffer *s, unsigned long data,
         /* user requested the value of this variable */
         struct Regex *ptr = *(struct Regex **) MuttVars[idx].var;
         const char *value = ptr ? ptr->pattern : NULL;
-        pretty_var(err->data, err->dsize, MuttVars[idx].name, NONULL(value));
+        pretty_var2(err->data, err->dsize, MuttVars[idx].name, NONULL(value));
         break;
       }
 
@@ -2897,7 +2896,7 @@ static int parse_set(struct Buffer *tmp, struct Buffer *s, unsigned long data,
     {
       if (query || (*s->dptr != '='))
       {
-        pretty_var(err->data, err->dsize, MuttVars[idx].name,
+        pretty_var2(err->data, err->dsize, MuttVars[idx].name,
                    NONULL((*(char **) MuttVars[idx].var)));
         break;
       }
@@ -3467,7 +3466,7 @@ int mutt_var_value_complete(char *buffer, size_t len, int pos)
       myvarval = myvar_get(var);
       if (myvarval)
       {
-        pretty_var(pt, len - (pt - buffer), var, myvarval);
+        pretty_var2(pt, len - (pt - buffer), var, myvarval);
         return 1;
       }
       return 0; /* no such variable. */
@@ -3731,7 +3730,7 @@ int var_to_string(int idx, char *val, size_t len)
   else
     return 0;
 
-  escape_string(val, len - 1, tmp);
+  escape_string2(val, len - 1, tmp);
 
   return 1;
 }
