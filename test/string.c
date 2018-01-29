@@ -43,6 +43,23 @@ void test_string_strfcpy(void)
       TEST_MSG("Actual  : %zu", len);
     }
   }
+
+  /* confirm that if we pass "dsize", we get a string len dsize-1 */
+  {
+    char bazz[] = "123456";
+    size_t dsize = 4; // lets get a substring with a smaller size
+    size_t len = mutt_str_strfcpy(dst, bazz, 4);
+    if (!TEST_CHECK(strcmp(dst, "123") == 0))
+    {
+      TEST_MSG("Expected: %s", "123");
+      TEST_MSG("Actual  : %s", dst);
+    }
+    if (!TEST_CHECK(len == (dsize - 1)))
+    {
+      TEST_MSG("Expected: %zu", (dsize - 1));
+      TEST_MSG("Actual  : %zu", len);
+    }
+  }
 }
 
 void test_string_strnfcpy(void)
@@ -51,16 +68,34 @@ void test_string_strnfcpy(void)
   char dst[10];
   char big[32];
 
-  { /* copy a substring */
-    size_t len = mutt_str_strnfcpy(dst, src, 3, sizeof(dst));
+  { // bazzy. prove that if dsize > size, then dsize will be used, and
+    // resulting string is (dsize - 1)
+    char *src = "123456";
+    char dest[4]; // "dsize" 4
+    size_t len;
+    len = mutt_str_strnfcpy(dest, src, sizeof(dest), 5);
     if (!TEST_CHECK(len == 3))
     {
       TEST_MSG("Expected: %zu", 3);
       TEST_MSG("Actual  : %zu", len);
     }
-    if (!TEST_CHECK(strcmp(dst, "One") == 0))
+    if (!TEST_CHECK(strcmp(dest, "123") == 0))
     {
-      TEST_MSG("Expected: %s", "One");
+      TEST_MSG("Expected: %s", "123");
+      TEST_MSG("Actual  : %s", dest);
+    }
+  }
+
+  { /* copy a substring */
+    size_t len = mutt_str_strnfcpy(dst, src, 3, sizeof(dst));
+    if (!TEST_CHECK(len == 2))
+    {
+      TEST_MSG("Expected: %zu", 2);
+      TEST_MSG("Actual  : %zu", len);
+    }
+    if (!TEST_CHECK(strcmp(dst, "On") == 0))
+    {
+      TEST_MSG("Expected: %s", "On");
       TEST_MSG("Actual  : %s", dst);
     }
   }
