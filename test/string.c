@@ -53,14 +53,14 @@ void test_string_strnfcpy(void)
 
   { /* copy a substring */
     size_t len = mutt_str_strnfcpy(dst, src, 3, sizeof(dst));
-    if (!TEST_CHECK(len == 2))
+    if (!TEST_CHECK(len == 3))
     {
-      TEST_MSG("Expected: %zu", 2);
+      TEST_MSG("Expected: %zu", 3);
       TEST_MSG("Actual  : %zu", len);
     }
-    if (!TEST_CHECK(strcmp(dst, "On") == 0))
+    if (!TEST_CHECK(strcmp(dst, "One") == 0))
     {
-      TEST_MSG("Expected: %s", "On");
+      TEST_MSG("Expected: %s", "One");
       TEST_MSG("Actual  : %s", dst);
     }
   }
